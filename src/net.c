@@ -54,10 +54,6 @@ void wifi_init(void) {
             .ssid = STRINGIFY(WIFI_SSID),
             .password = STRINGIFY(WIFI_PASS),
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-            .pmf_cfg = {
-                .capable = true,
-                .required = false,
-            },
         },
     };
 
