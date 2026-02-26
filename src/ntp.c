@@ -10,10 +10,14 @@
 #define SYNC_OK_INTERVAL_MS     (60 * 60 * 1000)   // 1 hour
 #define SYNC_FAIL_INTERVAL_MS   (1  * 60 * 1000)   // 1 minute
 
-void ntp_sync_task(void *arg)
+void sntp_sync_task(void *arg)
 {
+    setservername_sntp(0, "pool.ntp.org");
+    setservername_sntp(1, "time.nist.gov");
+    setservername_sntp(2, "time.google.com");
+
     while (1) {
-        if(ntp_request("pool.ntp.org") != ESP_OK) {
+        if(sntp_request() != ESP_OK) {
             ESP_LOGW(NTP_TASK_TAG, "Time sync failed");
             vTaskDelay(pdMS_TO_TICKS(SYNC_FAIL_INTERVAL_MS));
         }
@@ -21,8 +25,8 @@ void ntp_sync_task(void *arg)
             time_t now;
             struct tm tm;
 
-            time(&now);                     // ← Get current system time
-            localtime_r(&now, &tm);         // ← Convert to local time
+            time(&now);
+            localtime_r(&now, &tm);
 
             ESP_LOGI(NTP_TASK_TAG,
                      "Time synced: %lld (%04d-%02d-%02d %02d:%02d:%02d)",

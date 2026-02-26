@@ -9,6 +9,7 @@
  * - recvfrom           : Receives a UDP datagram (waits up to SO_RCVTIMEO timeout).
  */
 
+#include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -29,6 +30,11 @@
 #define NTP_PORT        123
 #define NTP_PACKET_LEN  48
 #define NTP_UNIX_OFFSET 2208988800UL
+
+#define MAX_SNTP_SERVERS       3
+#define SNTP_MAX_HOSTNAME_LEN  64
+
+static char s_servernames[MAX_SNTP_SERVERS][SNTP_MAX_HOSTNAME_LEN];
 
 #define SYNC_OK_INTERVAL_MS     (60 * 60 * 1000)
 #define SYNC_FAIL_INTERVAL_MS   (1  * 60 * 1000)
@@ -52,7 +58,7 @@ typedef struct {
     uint32_t tx_ts_frac;
 } ntp_packet_t;
 
-static esp_err_t ntp_resolve_hostname(const char *hostname, struct sockaddr_in *out_addr)
+static esp_err_t sntp_resolve_hostname(const char *hostname, struct sockaddr_in *out_addr)
 {
     struct addrinfo hints = {
         .ai_family = AF_INET,
@@ -80,7 +86,7 @@ static esp_err_t ntp_resolve_hostname(const char *hostname, struct sockaddr_in *
     return ESP_OK;
 }
 
-static void ntp_init_packet(ntp_packet_t *packet)
+static void sntp_init_packet(ntp_packet_t *packet)
 {
     *packet = (ntp_packet_t){0};
     packet->li_vn_mode =
@@ -89,7 +95,7 @@ static void ntp_init_packet(ntp_packet_t *packet)
         (NTP_MODE_CLIENT);
 }
 
-static esp_err_t ntp_send_and_receive(int sock, const struct sockaddr_in *addr, ntp_packet_t *packet)
+static esp_err_t sntp_send_and_receive(int sock, const struct sockaddr_in *addr, ntp_packet_t *packet)
 {
     if (sendto(sock, packet, sizeof(*packet), 0,
                (const struct sockaddr *)addr, sizeof(*addr)) < 0) {
@@ -105,7 +111,16 @@ static esp_err_t ntp_send_and_receive(int sock, const struct sockaddr_in *addr, 
     return ESP_OK;
 }
 
-esp_err_t ntp_request(const char *hostname)
+void setservername_sntp(uint8_t index, const char *hostname)
+{
+    if (index >= MAX_SNTP_SERVERS || hostname == NULL) {
+        return;
+    }
+    strncpy(s_servernames[index], hostname, SNTP_MAX_HOSTNAME_LEN - 1);
+    s_servernames[index][SNTP_MAX_HOSTNAME_LEN - 1] = '\0';
+}
+
+static esp_err_t sntp_request_one(const char *hostname)
 {
     int sock = -1;
     struct sockaddr_in addr;
@@ -118,23 +133,25 @@ esp_err_t ntp_request(const char *hostname)
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
-        ESP_LOGE(NTP_TASK_TAG, "Sreate socket failed");
+        ESP_LOGE(NTP_TASK_TAG, "Create socket failed");
         return ESP_FAIL;
     }
 
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
-    if (ntp_resolve_hostname(hostname, &addr) != ESP_OK) {
+    if (sntp_resolve_hostname(hostname, &addr) != ESP_OK) {
         close(sock);
         return ESP_FAIL;
     }
 
-    ntp_init_packet(&packet);
+    sntp_init_packet(&packet);
 
-    if (ntp_send_and_receive(sock, &addr, &packet) != ESP_OK) {
+    if (sntp_send_and_receive(sock, &addr, &packet) != ESP_OK) {
         close(sock);
         return ESP_FAIL;
     }
+
+    close(sock);
 
     uint32_t tx_sec = ntohl(packet.tx_ts_sec);
     time_t unix_time = (time_t)(tx_sec - NTP_UNIX_OFFSET);
@@ -146,4 +163,17 @@ esp_err_t ntp_request(const char *hostname)
 
     settimeofday(&tv, NULL);
     return ESP_OK;
+}
+
+esp_err_t sntp_request(void)
+{
+    for (uint8_t i = 0; i < MAX_SNTP_SERVERS; i++) {
+        if (s_servernames[i][0] == '\0') {
+            continue;
+        }
+        if (sntp_request_one(s_servernames[i]) == ESP_OK) {
+            return ESP_OK;
+        }
+    }
+    return ESP_FAIL;
 }
