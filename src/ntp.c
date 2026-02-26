@@ -21,6 +21,7 @@ void time_sync_cb(struct timeval *tv)
 
 void ntp_monitor_task(void *arg)
 {
+    (void)arg;
     time_t now;
     struct tm tm;
     for (;;) {
