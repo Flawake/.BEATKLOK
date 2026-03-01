@@ -1,5 +1,6 @@
 #include "rotary.h"
 #include "driver/gpio.h"
+#include "debounce.h"
 
 typedef struct {
     gpio_num_t key_pin;
@@ -20,6 +21,10 @@ S_RotaryEncoder rotary_encoder = {
     },
     .last_s2 = true,
 };
+
+button_debouncer_t key_button;
+button_debouncer_t sw1_key;
+button_debouncer_t sw2_key;
 
 const char *rotary_step_to_string(e_ROTARY_STEP step)
 {
@@ -44,16 +49,24 @@ void init_rotary_encoder(void) {
     set_encoder_pin(rotary_encoder.config.key_pin);
     set_encoder_pin(rotary_encoder.config.s1_pin);
     set_encoder_pin(rotary_encoder.config.s2_pin);
+
+    bool s1_state = (bool)gpio_get_level(rotary_encoder.config.s1_pin);
+    bool s2_state = (bool)gpio_get_level(rotary_encoder.config.s2_pin);
+
+    button_debouncer_init(&key_button, RELEASED, DEFAULT_DEBOUNCE_TIME_MS);
+    button_debouncer_init(&sw1_key, s1_state, DEFAULT_DEBOUNCE_TIME_MS);
+    button_debouncer_init(&sw2_key, s2_state, DEFAULT_DEBOUNCE_TIME_MS);
 }
 
-bool read_rotary_button(void) {
+button_state_t read_rotary_button(void) {
     // Invert button since pull up is ative on the pin
-    return gpio_get_level(rotary_encoder.config.key_pin) == 0;
+    bool button_pin_state = (bool)gpio_get_level(rotary_encoder.config.key_pin) == 0;
+    return button_debouncer_update(&key_button, button_pin_state, esp_timer_get_time());
 }
 
-e_ROTARY_STEP rotary_detect_update(bool current_s1, bool current_s2, bool last_s2) {
-    if (current_s2 != last_s2 && current_s2 == false) {
-        return (current_s1 == 0) ? ROTARY_CW : ROTARY_CCW;
+e_ROTARY_STEP rotary_detect_update(button_state_t current_s1, button_state_t current_s2, button_state_t last_s2) {
+    if (current_s2 != last_s2 && current_s2 == RELEASED) {
+        return (current_s1 == RELEASED) ? ROTARY_CW : ROTARY_CCW;
     }
     return ROTARY_NONE;
 }
@@ -61,8 +74,10 @@ e_ROTARY_STEP rotary_detect_update(bool current_s1, bool current_s2, bool last_s
 e_ROTARY_STEP read_rotary_step(void) {
     bool current_s1 = (bool)gpio_get_level(rotary_encoder.config.s1_pin);
     bool current_s2 = (bool)gpio_get_level(rotary_encoder.config.s2_pin);
+    button_state_t s1_state = button_debouncer_update(&s1_state, current_s1, esp_timer_get_time());
+    button_state_t s2_state = button_debouncer_update(&s2_state, current_s2, esp_timer_get_time());
 
-    e_ROTARY_STEP step = rotary_detect_update(current_s1, current_s2, rotary_encoder.last_s2);
+    e_ROTARY_STEP step = rotary_detect_update(s1_state, s2_state, rotary_encoder.last_s2);
 
     rotary_encoder.last_s2 = current_s2;
 
