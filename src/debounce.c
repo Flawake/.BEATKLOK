@@ -1,0 +1,29 @@
+#include "debounce.h"
+#include "esp_timer.h"
+
+void button_debouncer_init(button_debouncer_t *btn, button_state_t initial_state, uint32_t debounce_time_ms) {
+    btn->stable_state = initial_state;
+    btn->last_sample = initial_state;
+    btn->debounce_time_ms = debounce_time_ms;
+    btn->last_transition_ms = 0;
+}
+
+button_state_t button_debouncer_update(button_debouncer_t *btn, button_state_t read_state, uint32_t now_ms) {
+    if (read_state != btn->last_sample)
+    {
+        btn->last_sample = read_state;
+        btn->last_transition_ms = now_ms;
+    }
+
+    /* Check if long enough stable */
+    if ((now_ms - btn->last_transition_ms) >= btn->debounce_time_ms)
+    {
+        if (read_state != btn->stable_state)
+        {
+            btn->stable_state = read_state;
+            return read_state;
+        }
+    }
+
+    return BUTTON_STATE_IDLE;
+}
