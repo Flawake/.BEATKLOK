@@ -8,9 +8,8 @@
 #define DEFAULT_DEBOUNCE_TIME_MS 30
 
 typedef enum {
-    BUTTON_STATE_IDLE = 0,
-    BUTTON_STATE_PRESSED,
-    BUTTON_STATE_RELEASED
+    PRESSED,
+    RELEASED
 } button_state_t;
 
 typedef struct
