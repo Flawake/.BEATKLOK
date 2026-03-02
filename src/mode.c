@@ -34,10 +34,10 @@ void update_mode_task(void *arg) {
 
     while(1) {
         currentSystemMode = update_system_mode(currentSystemMode);
-        e_ROTARY_STEP step = read_rotary_step();
-        if (step != ROTARY_NONE) {
-            ESP_LOGI(TAG, "Rotary step: %s", rotary_step_to_string(step));
-        }
+
+        int16_t step_count = read_rotary_step();
+        ESP_LOGI(TAG, "Rotary step: %i", step_count);
+
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
