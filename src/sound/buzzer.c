@@ -4,7 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define BUZZER_GPIO             37
+#define BUZZER_GPIO             35
 #define BUZZER_LEDC_MODE        LEDC_LOW_SPEED_MODE
 #define BUZZER_LEDC_TIMER       LEDC_TIMER_0
 #define BUZZER_LEDC_CHANNEL     LEDC_CHANNEL_0
