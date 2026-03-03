@@ -1,6 +1,5 @@
 #include "mode.h"
 #include "rotary.h"
-#include "status_leds.h"
 #include "sound/buzzer.h"
 #include "render/render.h"
 #include "motor/motor.h"
@@ -9,11 +8,6 @@
 #include "freertos/task.h"
 
 static const char *TAG = "MODE";
-
-typedef enum {
-    MANUAL,
-    AUTO,
-} e_SystemMode;
 
 e_SystemMode currentSystemMode = MANUAL;
 
@@ -30,6 +24,10 @@ e_SystemMode update_system_mode(e_SystemMode currentMode) {
     return MANUAL;
 }
 
+e_SystemMode get_system_mode(void) {
+    return currentSystemMode;
+}
+
 void update_mode_task(void *arg) {
     (void)arg;
 
@@ -39,7 +37,6 @@ void update_mode_task(void *arg) {
 
     while(1) {
         currentSystemMode = update_system_mode(currentSystemMode);
-        set_mode_led(get_default_led_config(), (bool)currentSystemMode);
 
         int16_t step_count = read_rotary_step();
         if (step_count != 0) {

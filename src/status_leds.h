@@ -12,12 +12,6 @@ typedef struct {
 
 S_StatusLedConfig *get_default_led_config(void);
 
-void init_status_leds(S_StatusLedConfig *config);
-
-void set_net_led(S_StatusLedConfig *config, bool state);
-
-void set_time_led(S_StatusLedConfig *config, bool state);
-
-void set_mode_led(S_StatusLedConfig *config, bool state);
+void status_leds_task(void *arg);
 
 #endif
