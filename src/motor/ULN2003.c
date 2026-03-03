@@ -3,16 +3,6 @@
 
 #define MASK_CLAMP_4 0x03
 
-S_ULN2003 driver_instance = {
-    .config = {
-        .IN1 = 13,
-        .IN2 = 14,
-        .IN3 = 15,
-        .IN4 = 16,
-    },
-    .step_phase = 0,
-};
-
 const uint8_t step_table[4] = {
     0b0001,
     0b0010,
@@ -35,6 +25,6 @@ void uln2003_step(S_ULN2003 *driver, E_MotorDir dir) {
 void uln2003_make_steps(S_ULN2003 *driver, E_MotorDir dir, uint16_t steps) {
     for (int i = 0; i < steps; i++) {
         uln2003_step(driver, dir);
-        esp_rom_delay_us(50);
+        esp_rom_delay_us(2500);
     }
 }

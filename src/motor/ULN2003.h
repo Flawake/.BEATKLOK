@@ -2,6 +2,7 @@
 #define ULN2003_H
 
 #include "driver/gpio.h"
+#include "motor.h"
 
 typedef struct {
     gpio_num_t IN1;
@@ -15,9 +16,6 @@ typedef struct {
     int8_t step_phase;
 } S_ULN2003;
 
-typedef enum {
-    FORWARD = -1,
-    BACKWARD = 1,
-} E_MotorDir;
+void uln2003_make_steps(S_ULN2003 *driver, E_MotorDir dir, uint16_t steps);
 
 #endif
