@@ -1,5 +1,6 @@
 #include "net.h"
 #include "mode.h"
+#include "render/render.h"
 #include "ntp.h"
 #include "esp_log.h"
 #include "esp_event.h"
@@ -14,4 +15,5 @@ void app_main() {
 
     xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(update_mode_task, "update_mode_task", 4096, NULL, 5, NULL);
+    xTaskCreate(render_task, "render_task", 10000, NULL, 5, NULL);
 }
