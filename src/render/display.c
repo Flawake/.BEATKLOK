@@ -6,20 +6,14 @@
 
 #define TAG "Display"
 
-#define DISPLAY_SDA_PIN 8
-#define DISPLAY_SCL_PIN 9
-#define DISPLAY_RESET_PIN -1
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 64
-
 #define DISPLAY_LINE_TEXT_LEN 24
 
 #define DISPLAY_CONFIG_DEFAULT { \
-    .sda_pin = DISPLAY_SDA_PIN, \
-    .scl_pin = DISPLAY_SCL_PIN, \
-    .reset_pin = DISPLAY_RESET_PIN, \
-    .width = DISPLAY_WIDTH, \
-    .height = DISPLAY_HEIGHT, \
+    .sda_pin = 8, \
+    .scl_pin = 9, \
+    .reset_pin = -1, \
+    .width = 128, \
+    .height = 64, \
 }
 
 display_handle_t display_create_default(void) {
@@ -89,6 +83,6 @@ void display_show_text_centered(display_handle_t *handle, int page,
     ssd1306_display_text_box1(&handle->device, page, cursor_pos_horizontal, text, text_len, text_len, false, 0);
 }
 
-void display_show_bitmap(display_handle_t *handle, Bitmap bitmap, int x_pos, int y_pos) {
+void display_show_bitmap(display_handle_t *handle, S_Bitmap bitmap, int x_pos, int y_pos) {
     ssd1306_bitmaps(&handle->device, x_pos, y_pos, bitmap.data, bitmap.width, bitmap.heigth, false);
 }

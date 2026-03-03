@@ -6,17 +6,17 @@
 typedef struct {
     int x;
     int y;
-} Vector2;
+} S_Vector2;
 
 typedef struct {
     int width;
     int heigth;
     const uint8_t *data;
-} Bitmap;
+} S_Bitmap;
 
-void render_bitmap(const Bitmap *bitmap, Vector2 position);
+void render_bitmap(const S_Bitmap *bitmap, S_Vector2 position);
 
-void render_text(const char *text, Vector2 position, int text_len);
+void render_text(const char *text, S_Vector2 position, int text_len);
 
 void render_task(void *pvParameters);
 

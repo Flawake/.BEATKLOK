@@ -35,6 +35,6 @@ void display_show_text(display_handle_t *handle, int x_pos, int y_pos,
 void display_show_text_centered(display_handle_t *handle, int page,
                                 const char *text, int text_len);
 
-void display_show_bitmap(display_handle_t *handle, Bitmap bitmap, int x_pos, int y_pos);
+void display_show_bitmap(display_handle_t *handle, S_Bitmap bitmap, int x_pos, int y_pos);
 
 #endif // DISPLAY_H

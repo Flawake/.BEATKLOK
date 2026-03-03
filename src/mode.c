@@ -44,7 +44,7 @@ void update_mode_task(void *arg) {
             uint8_t len = snprintf(rotary_text, sizeof(rotary_text), "%i", step_count);
 
             uint16_t text_width = len * 8;
-            Vector2 pos = {
+            S_Vector2 pos = {
                 .x = (128 - text_width) / 2,
                 .y = (64 - 8) / 2,
             };
