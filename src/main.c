@@ -1,4 +1,5 @@
 #include "net.h"
+#include "status_leds.h"
 #include "sound/buzzer.h"
 #include "motor/motor.h"
 #include "mode.h"
@@ -19,6 +20,7 @@ void app_main() {
     wifi_init();
     buzzer_init();
     motor_init_driver(MOTOR_STEPS_REVOLUTION * MOTOR_GEAR_RATIO);
+    init_status_leds(get_default_led_config());
 
     xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(update_mode_task, "update_mode_task", 4096, NULL, 5, NULL);
