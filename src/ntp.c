@@ -6,6 +6,8 @@
 #include <time.h>
 
 #define NTP_TASK_TAG "SNTP"
+#define SECONDS_IN_DAY 86400
+#define CENTIBEAD_IN_DAY 1000 * 100
 
 #define SYNC_OK_INTERVAL_MS     (60 * 60 * 1000)   // 1 hour
 #define SYNC_FAIL_INTERVAL_MS   (1  * 60 * 1000)   // 1 minute
@@ -37,4 +39,21 @@ void sntp_sync_task(void *arg)
             vTaskDelay(pdMS_TO_TICKS(SYNC_OK_INTERVAL_MS));
         }
     }
+}
+
+uint32_t time_to_centibeads(void) {
+    time_t now = time(NULL);
+
+    struct tm utc;
+    gmtime_r(&now, &utc);
+
+    int seconds_since_midnight =
+          (utc.tm_hour * 3600)
+        + (utc.tm_min  * 60)
+        +  utc.tm_sec
+        + 3600; /* BMT time is 1 hour ahead of UTC, add 3600 seconds */
+
+    seconds_since_midnight %= SECONDS_IN_DAY;
+
+    return (seconds_since_midnight * CENTIBEAD_IN_DAY) / SECONDS_IN_DAY;
 }
