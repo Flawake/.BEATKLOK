@@ -14,7 +14,6 @@ typedef enum {
 e_SystemMode currentSystemMode = AUTO;
 
 e_SystemMode update_system_mode(e_SystemMode currentMode) {
-    ESP_LOGI(TAG, "Step: %i", read_rotary_button());
     if (currentMode == AUTO) {
         return currentMode;
     }
@@ -36,7 +35,9 @@ void update_mode_task(void *arg) {
         currentSystemMode = update_system_mode(currentSystemMode);
 
         int16_t step_count = read_rotary_step();
-        ESP_LOGI(TAG, "Rotary step: %i", step_count);
+        if (step_count != 0) {
+            ESP_LOGI(TAG, "Rotary step: %i", step_count);
+        }
 
         vTaskDelay(pdMS_TO_TICKS(100));
     }

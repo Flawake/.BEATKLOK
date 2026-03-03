@@ -5,8 +5,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 
-#define BUTTON_ISR_QUEUE_SIZE 50
+#define BUTTON_ISR_QUEUE_SIZE 100
 
 typedef struct
 {
@@ -40,8 +41,8 @@ S_RotaryEncoder rotary_encoder = {
 };
 
 button_debouncer_t key_button;
-button_debouncer_t sw1_key;
-button_debouncer_t sw2_key;
+bool sw1_state;
+bool sw2_state;
 
 const char *rotary_step_to_string(e_ROTARY_STEP step)
 {
@@ -68,18 +69,18 @@ static void replay_encoder_interrupts() {
     button_sample_t sample;
     while (xQueueReceive(button_queue, &sample, 0) == pdTRUE) {
         if (sample.triggered_pin == rotary_encoder.config.key_pin) {
-            (void)button_debouncer_update(&key_button, sample.state, sample.time_ms);
+            button_debouncer_update(&key_button, sample.state, sample.time_ms);
             continue;
         }
 
         if (sample.triggered_pin == rotary_encoder.config.s1_pin) {
-            (void)button_debouncer_update(&sw1_key, sample.state, sample.time_ms);
+            sw1_state = sample.state;
             continue;
         }
 
         if (sample.triggered_pin == rotary_encoder.config.s2_pin) {
-            button_state_t current_s1 = sw1_key.stable_state;
-            button_state_t current_s2 = button_debouncer_update(&sw2_key, sample.state, sample.time_ms);
+            button_state_t current_s1 = sw1_state;
+            button_state_t current_s2 = sample.state;
 
             e_ROTARY_STEP step = rotary_detect_update(current_s1, current_s2, rotary_encoder.last_s2);
             rotary_encoder.last_s2 = current_s2;
@@ -124,12 +125,7 @@ void init_rotary_encoder(void) {
     set_encoder_pin(rotary_encoder.config.s1_pin);
     set_encoder_pin(rotary_encoder.config.s2_pin);
 
-    button_state_t s1_state = gpio_get_level(rotary_encoder.config.s1_pin) ? RELEASED : PRESSED;
-    button_state_t s2_state = gpio_get_level(rotary_encoder.config.s2_pin) ? RELEASED : PRESSED;
-
     button_debouncer_init(&key_button, RELEASED, DEFAULT_DEBOUNCE_TIME_MS);
-    button_debouncer_init(&sw1_key, s1_state, DEFAULT_DEBOUNCE_TIME_MS);
-    button_debouncer_init(&sw2_key, s2_state, DEFAULT_DEBOUNCE_TIME_MS);
 }
 
 button_state_t read_rotary_button(void) {
