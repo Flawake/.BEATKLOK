@@ -43,6 +43,7 @@ void status_leds_task(void *arg) {
     gpio_config(&io_conf);
 
     bool net_led_state = false;
+    bool time_led_state = false;
 
     while (1)
     {
@@ -53,6 +54,9 @@ void status_leds_task(void *arg) {
             net_led_state = !net_led_state;
             set_net_led(&config, net_led_state);
         }
+
+        time_led_state = !time_led_state;
+        set_time_led(&config, time_led_state);
 
         set_mode_led(&config, (bool)get_system_mode());
 
