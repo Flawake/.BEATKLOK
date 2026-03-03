@@ -4,7 +4,7 @@
 #include "mode.h"
 #include "net.h"
 
-S_StatusLedConfig default_led_config = {
+static S_StatusLedConfig default_led_config = {
     .net_led_pin = 36,
     .time_led_pin = 37,
     .mode_led_pin = 38,
