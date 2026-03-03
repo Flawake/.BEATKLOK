@@ -12,7 +12,6 @@
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
-/*Length of text holding buffer*/
 #define DISPLAY_LINE_TEXT_LEN 24
 
 #define DISPLAY_CONFIG_DEFAULT { \
