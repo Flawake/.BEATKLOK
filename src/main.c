@@ -1,4 +1,5 @@
 #include "net.h"
+#include "sound/buzzer.h"
 #include "motor/motor.h"
 #include "mode.h"
 #include "render/render.h"
@@ -16,7 +17,7 @@ void app_main() {
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     wifi_init();
-
+    buzzer_init();
     motor_init_driver(MOTOR_STEPS_REVOLUTION * MOTOR_GEAR_RATIO);
 
     xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);

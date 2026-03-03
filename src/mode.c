@@ -1,5 +1,6 @@
 #include "mode.h"
 #include "rotary.h"
+#include "sound/buzzer.h"
 #include "render/render.h"
 #include "motor/motor.h"
 #include "esp_log.h"
@@ -51,6 +52,9 @@ void update_mode_task(void *arg) {
             };
 
             render_text(rotary_text, pos, len);
+            
+            buzzer_play_tone(1000, 100);
+            motor_move_relative(90);
         }
 
         vTaskDelay(pdMS_TO_TICKS(100));
