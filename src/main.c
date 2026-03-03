@@ -12,6 +12,6 @@ void app_main() {
 
     wifi_init();
 
-    xTaskCreate(ntp_monitor_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
+    xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(update_mode_task, "update_mode_task", 4096, NULL, 5, NULL);
 }
