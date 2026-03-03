@@ -1,4 +1,8 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "status_leds.h"
+#include "mode.h"
+#include "net.h"
 
 S_StatusLedConfig default_led_config = {
     .net_led_pin = 36,
@@ -10,29 +14,49 @@ S_StatusLedConfig *get_default_led_config(void) {
     return &default_led_config;
 }
 
-void init_status_leds(S_StatusLedConfig *config) {
+static void set_net_led(S_StatusLedConfig *config, bool state) {
+    gpio_set_level(config->net_led_pin, state);
+}
+
+static void set_time_led(S_StatusLedConfig *config, bool state) {
+    gpio_set_level(config->time_led_pin, state);
+}
+
+static void set_mode_led(S_StatusLedConfig *config, bool state) {
+    gpio_set_level(config->mode_led_pin, state);
+}
+
+void status_leds_task(void *arg) {
+    S_StatusLedConfig config = *(S_StatusLedConfig *)arg;
+
     gpio_config_t io_conf = {
         .mode = GPIO_MODE_OUTPUT,
         .pin_bit_mask =
-            (1ULL << config->net_led_pin) |
-            (1ULL << config->time_led_pin) |
-            (1ULL << config->mode_led_pin),
+            (1ULL << config.net_led_pin) |
+            (1ULL << config.time_led_pin) |
+            (1ULL << config.mode_led_pin),
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .pull_up_en   = GPIO_PULLUP_DISABLE,
         .intr_type    = GPIO_INTR_DISABLE
     };
 
     gpio_config(&io_conf);
-}
 
-void set_net_led(S_StatusLedConfig *config, bool state) {
-    gpio_set_level(config->net_led_pin, state);
-}
+    bool net_led_state = false;
 
-void set_time_led(S_StatusLedConfig *config, bool state) {
-    gpio_set_level(config->time_led_pin, state);
-}
+    while (1)
+    {
+        if (wifi_is_connected()) {
+            set_net_led(&config, true);
+        }
+        else {
+            net_led_state = !net_led_state;
+            set_net_led(&config, net_led_state);
+        }
 
-void set_mode_led(S_StatusLedConfig *config, bool state) {
-    gpio_set_level(config->mode_led_pin, state);
+        set_mode_led(&config, (bool)get_system_mode());
+
+        vTaskDelay(pdMS_TO_TICKS(864)); // 1 centibead = 864ms
+    }
+    
 }
