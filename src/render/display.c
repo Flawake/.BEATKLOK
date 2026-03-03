@@ -1,0 +1,95 @@
+#include <string.h>
+#include <stdio.h>
+#include "display.h"
+#include "net.h"
+#include "esp_log.h"
+
+#define TAG "Display"
+
+#define DISPLAY_SDA_PIN 8
+#define DISPLAY_SCL_PIN 9
+#define DISPLAY_RESET_PIN -1
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+
+/*Length of text holding buffer*/
+#define DISPLAY_LINE_TEXT_LEN 24
+
+#define DISPLAY_CONFIG_DEFAULT { \
+    .sda_pin = DISPLAY_SDA_PIN, \
+    .scl_pin = DISPLAY_SCL_PIN, \
+    .reset_pin = DISPLAY_RESET_PIN, \
+    .width = DISPLAY_WIDTH, \
+    .height = DISPLAY_HEIGHT, \
+}
+
+display_handle_t display_create_default(void) {
+    display_config_t config = DISPLAY_CONFIG_DEFAULT;
+    return (display_handle_t) {
+        .config = config
+    };
+}
+
+bool display_init(display_handle_t *handle) {
+    i2c_master_init(&handle->device, 
+                     handle->config.sda_pin, 
+                     handle->config.scl_pin, 
+                     handle->config.reset_pin);
+
+    ssd1306_init(&handle->device, 
+                 handle->config.width, 
+                 handle->config.height);
+
+    display_clear(handle);
+
+    ESP_LOGI(TAG, "Display initialized");
+    return true;
+}
+
+void display_clear(display_handle_t *handle) {
+    ssd1306_clear_screen(&handle->device, false);
+}
+
+void display_clear_rectangle(display_handle_t *handle, int mix_x, int max_x, int min_y, int max_y) {
+    if (mix_x < 0) mix_x = 0;
+    if (min_y < 0) min_y = 0;
+    if (max_x > handle->config.width) max_x = handle->config.width;
+    if (max_y > handle->config.height) max_y = handle->config.height;
+
+    for (int y = min_y; y < max_y; y++) {
+        for (int x = mix_x; x < max_x; x++) {
+            _ssd1306_pixel(&handle->device, x, y, true);
+        }
+    }
+    ssd1306_show_buffer(&handle->device);
+}
+
+void display_show_text(display_handle_t *handle, int x_pos, int y_pos,
+                       const char *text, int text_len) {
+
+    int text_width = text_len * 8;
+    int text_height = 8;
+
+    display_clear_rectangle(handle,
+                            x_pos,
+                            x_pos + text_width,
+                            y_pos,
+                            y_pos + text_height);
+
+    // Convert to page/segment for the SSD1306 API
+    int page = y_pos / 8;
+    int seg = x_pos;
+
+    ssd1306_display_text_box1(&handle->device, page, seg,
+                              text, text_len, text_len, false, 0);
+}
+
+void display_show_text_centered(display_handle_t *handle, int page,
+                                const char *text, int text_len) {
+    int cursor_pos_horizontal = (handle->config.width - text_len * 8) / 2;
+    ssd1306_display_text_box1(&handle->device, page, cursor_pos_horizontal, text, text_len, text_len, false, 0);
+}
+
+void display_show_bitmap(display_handle_t *handle, Bitmap bitmap, int x_pos, int y_pos) {
+    ssd1306_bitmaps(&handle->device, x_pos, y_pos, bitmap.data, bitmap.width, bitmap.heigth, false);
+}
