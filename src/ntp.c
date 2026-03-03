@@ -1,3 +1,4 @@
+#include "ntp.h"
 #include "esp_sntp.h"
 #include "esp_log.h"
 #include "ntp/requester.h"
@@ -6,8 +7,6 @@
 #include <time.h>
 
 #define NTP_TASK_TAG "SNTP"
-#define SECONDS_IN_DAY 86400
-#define CENTIBEAD_IN_DAY 1000 * 100
 
 #define SYNC_OK_INTERVAL_MS     (60 * 60 * 1000)   // 1 hour
 #define SYNC_FAIL_INTERVAL_MS   (1  * 60 * 1000)   // 1 minute

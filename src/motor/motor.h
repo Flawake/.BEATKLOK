@@ -8,7 +8,7 @@ typedef enum {
 
 void motor_reset_local_rotation(void);
 
-void motor_init_driver(int steps_per_revolution);
+void motor_drive_task(void *arg);
 
 void motor_move(float position);
 
