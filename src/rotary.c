@@ -56,7 +56,7 @@ const char *rotary_step_to_string(e_ROTARY_STEP step)
 
 e_ROTARY_STEP rotary_detect_update(button_state_t current_s1, button_state_t current_s2, button_state_t last_s2) {
     if (current_s2 != last_s2 && current_s2 == RELEASED) {
-        return (current_s1 == RELEASED) ? ROTARY_CCW : ROTARY_CW;
+        return (current_s1 == RELEASED) ? ROTARY_CW : ROTARY_CCW;
     }
     return ROTARY_NONE;
 }
