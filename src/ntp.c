@@ -41,19 +41,20 @@ void sntp_sync_task(void *arg)
     }
 }
 
-uint32_t time_to_centibeads(void) {
+uint32_t time_to_centibeads(struct tm *instant) {
+    int seconds = (instant->tm_hour * 3600) + (instant->tm_min  * 60) + instant->tm_sec;
+
+    return (seconds * CENTIBEAD_IN_DAY) / SECONDS_IN_DAY;
+}
+
+uint32_t get_centibeads_clock(void) {
     time_t now = time(NULL);
 
-    struct tm utc;
-    gmtime_r(&now, &utc);
+    /* BMT time is UTC+1 */
+    now += 3600;
 
-    int seconds_since_midnight =
-          (utc.tm_hour * 3600)
-        + (utc.tm_min  * 60)
-        +  utc.tm_sec
-        + 3600; /* BMT time is 1 hour ahead of UTC, add 3600 seconds */
+    struct tm bmt;
+    gmtime_r(&now, &bmt);
 
-    seconds_since_midnight %= SECONDS_IN_DAY;
-
-    return (seconds_since_midnight * CENTIBEAD_IN_DAY) / SECONDS_IN_DAY;
+    return time_to_centibeads(&bmt);
 }
