@@ -1,9 +1,11 @@
 #include "render.h"
 #include "display.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include <freertos/queue.h>
 #include <freertos/projdefs.h>
 
+#define RENDERER_TASK_TAG "RENDERER"
 #define RENDER_QUEUE_SIZE 10
 
 typedef enum {
@@ -50,7 +52,8 @@ void render_task(void *pvParameters) {
 
     render_queue = xQueueCreate(RENDER_QUEUE_SIZE, sizeof(S_Command));
     if (render_queue == NULL) {
-        return; // Crashes the system on purpose by exiting a task
+        ESP_LOGW(RENDERER_TASK_TAG, "Could not create render_queue, stopping system execution");
+        abort();
     }
 
     display_handle_t display = display_create_default();

@@ -12,13 +12,13 @@
 #define SYNC_OK_INTERVAL_S     (60 * 60)   // 1 hour
 #define SYNC_FAIL_INTERVAL_S   (1  * 60)   // 1 minute
 
-uint32_t time_to_centibeads(uint32_t ms_since_midnight) {
+uint32_t time_to_centibeats(uint32_t ms_since_midnight) {
     return (uint32_t)(
-        ((uint64_t)ms_since_midnight * CENTIBEAD_IN_DAY) / MILLISECONDS_IN_DAY
+        ((uint64_t)ms_since_midnight * CENTIBEATS_IN_DAY) / MILLISECONDS_IN_DAY
     );
 }
 
-uint32_t get_centibeads_clock(void) {
+uint32_t get_centibeats_clock(void) {
     struct timeval now;
     struct tm bmt;
 
@@ -35,7 +35,7 @@ uint32_t get_centibeads_clock(void) {
         ((uint64_t)bmt.tm_sec  *    1000ULL) +
         ((uint64_t)now.tv_usec / 1000ULL);
 
-    return time_to_centibeads(ms_since_midnight);
+    return time_to_centibeats(ms_since_midnight);
 }
 
 void sntp_sync_task(void *arg)
@@ -52,7 +52,7 @@ void sntp_sync_task(void *arg)
         time(&now);
         char text[20];
 
-        long cur_time = get_centibeads_clock();
+        long cur_time = get_centibeats_clock();
         int text_len = snprintf(text, sizeof(text), "Time: %li.%02li\n", cur_time / 100, labs(cur_time % 100));
 
         render_text(text, (S_Vector2){10, 40}, text_len);
@@ -66,6 +66,6 @@ void sntp_sync_task(void *arg)
                 time_till_new_sync = SYNC_OK_INTERVAL_S + now;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(864)); // 864ms = 1 centibead
+        vTaskDelay(pdMS_TO_TICKS(864)); // 864ms = 1 centibwat
     }
 }

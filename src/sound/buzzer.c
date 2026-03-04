@@ -3,6 +3,7 @@
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "events.h"
 
 #define BUZZER_GPIO             35
 #define BUZZER_LEDC_MODE        LEDC_LOW_SPEED_MODE
@@ -36,22 +37,40 @@ void buzzer_init(void) {
     ledc_channel_config(&channel_conf);
 }
 
-void buzzer_start(uint32_t frequency_hz) {
-    buzzer_init();
-
+static void buzzer_start(uint32_t frequency_hz) {
     ledc_set_freq(BUZZER_LEDC_MODE, BUZZER_LEDC_TIMER, frequency_hz);
     ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, BUZZER_DUTY);
     ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
 }
 
-void buzzer_stop(void) {
+static void buzzer_stop(void) {
 
     ledc_set_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL, 0);
     ledc_update_duty(BUZZER_LEDC_MODE, BUZZER_LEDC_CHANNEL);
 }
 
-void buzzer_play_tone(uint32_t frequency_hz, uint32_t duration_ms) {
+static void buzzer_play_tone_blocking(uint32_t frequency_hz, uint32_t duration_ms) {
     buzzer_start(frequency_hz);
     vTaskDelay(pdMS_TO_TICKS(duration_ms));
     buzzer_stop();
+}
+
+void buzzer_task(void *arg) {
+    (void)arg; // Cast to void to supress unused variable warning
+
+    buzzer_init();
+
+    EventGroupHandle_t events_group = events_get_group();
+    
+    while (1) {
+        xEventGroupWaitBits(
+            events_group,
+            EVENT_BEAT_TICK,
+            pdTRUE,
+            pdFALSE,
+            portMAX_DELAY
+        );
+
+        buzzer_play_tone_blocking(1000, 50);
+    }
 }
