@@ -7,4 +7,6 @@ void wifi_init(void);
 
 bool wifi_is_connected(void);
 
+void wifi_signal_monitor_task(void *pvParameters);
+
 #endif

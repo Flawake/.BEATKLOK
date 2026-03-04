@@ -49,6 +49,9 @@ void render_task(void *pvParameters) {
     (void)pvParameters; // Cast to void to supress unused variable warning
 
     render_queue = xQueueCreate(RENDER_QUEUE_SIZE, sizeof(S_Command));
+    if (render_queue == NULL) {
+        return; // Crashes the system on purpose by exiting a task
+    }
 
     display_handle_t display = display_create_default();
     display_init(&display);

@@ -42,6 +42,48 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+static int8_t wifi_get_rssi(void) {
+    wifi_ap_record_t ap_info;
+    esp_err_t result = esp_wifi_sta_get_ap_info(&ap_info);
+
+    if (result == ESP_OK) {
+        return ap_info.rssi;
+    }
+
+    return 0;
+}
+
+bool wifi_is_connected(void) {
+    return (xEventGroupGetBits(s_wifi_event_group) & WIFI_CONNECTED_BIT) != 0;
+}
+
+void wifi_signal_monitor_task(void *pvParameters) {
+    (void)pvParameters;
+
+    while (1) {
+        if (!wifi_is_connected()) {
+            render_bitmap(&disconnected_bitmap, (S_Vector2){10, 10});
+        } else {
+            int8_t rssi = wifi_get_rssi();
+
+            const S_Bitmap *icon = &wifi_bad_bitmap;
+
+            if (rssi >= -55) {
+                icon = &wifi_excellent_bitmap;
+            } else if (rssi >= -60) {
+                icon = &wifi_good_bitmap;
+            } else if (rssi >= -68) {
+                icon = &wifi_ok_bitmap;
+            } else if (rssi >= -75) {
+                icon = &wifi_bad_bitmap;
+            }
+
+            render_bitmap(icon, (S_Vector2){10, 10});
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
 void wifi_init(void) {
     ESP_ERROR_CHECK(esp_netif_init());
@@ -66,8 +108,4 @@ void wifi_init(void) {
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
-}
-
-bool wifi_is_connected(void) {
-    return (xEventGroupGetBits(s_wifi_event_group) & WIFI_CONNECTED_BIT) != 0;
 }
