@@ -41,13 +41,15 @@ void sntp_sync_task(void *arg)
 }
 
 uint32_t time_to_centibeads(struct tm *instant) {
-    int seconds = (instant->tm_hour * 3600) + (instant->tm_min  * 60) + instant->tm_sec;
+    uint32_t seconds = (instant->tm_hour * 3600) + (instant->tm_min  * 60) + instant->tm_sec;
 
     return (seconds * CENTIBEAD_IN_DAY) / SECONDS_IN_DAY;
 }
 
 uint32_t get_centibeads_clock(void) {
-    time_t now = time(NULL);
+    time_t now;
+    
+    time(&now);
 
     /* BMT time is UTC+1 */
     now += 3600;
