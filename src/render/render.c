@@ -1,16 +1,14 @@
 #include "render.h"
 #include "display.h"
 #include "esp_log.h"
+#include "events.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <freertos/queue.h>
 #include <freertos/projdefs.h>
-#include "nvs.h"
 
 #define RENDERER_TASK_TAG "RENDERER"
 #define RENDER_QUEUE_SIZE 10
-#define DISPLAY_NVS_NAMESPACE   "settings"
-#define DISPLAY_ENABLED      "display_en"
 
 typedef enum {
     RENDER_TEXT,
@@ -36,48 +34,6 @@ bool render_is_enabled(void) {
 
 void render_set_enabled(bool enabled) {
     render_enabled = enabled;
-}
-
-static bool toggle_display_flag_from_nvs(void) {
-    nvs_handle_t handle;
-    esp_err_t err = nvs_open(DISPLAY_NVS_NAMESPACE, NVS_READWRITE, &handle);
-    if (err != ESP_OK) {
-        ESP_LOGW(RENDERER_TASK_TAG, "Failed to open flash: %s", esp_err_to_name(err));
-        return true;
-    }
-
-    uint8_t stored = 1; // default enabled if not found
-    err = nvs_get_u8(handle, DISPLAY_ENABLED, &stored);
-    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) {
-        ESP_LOGW(RENDERER_TASK_TAG, "Failed to get display enabled: %s", esp_err_to_name(err));
-        nvs_close(handle);
-        return true;
-    }
-
-    stored ^= 1; // Invert last bit
-
-    err = nvs_set_u8(handle, DISPLAY_ENABLED, stored);
-    if (err != ESP_OK) {
-        ESP_LOGW(RENDERER_TASK_TAG, "Failed writing enabled state: %s", esp_err_to_name(err));
-        nvs_close(handle);
-        render_set_enabled(true);
-        return true;
-    }
-
-    err = nvs_commit(handle);
-    if (err != ESP_OK) {
-        ESP_LOGW(RENDERER_TASK_TAG, "Failed to commit display flag: %s", esp_err_to_name(err));
-        nvs_close(handle);
-        render_set_enabled(true);
-        return true;
-    }
-
-    nvs_close(handle);
-
-    render_set_enabled(stored);
-    ESP_LOGI(RENDERER_TASK_TAG, "Display rendering %s", stored ? "ENABLED" : "DISABLED");
-
-    return stored;
 }
 
 void render_bitmap(const S_Bitmap *bitmap, S_Vector2 position) {
@@ -114,12 +70,21 @@ void render_task(void *pvParameters) {
     display_handle_t display = display_create_default();
     display_init(&display);
 
-    bool enabled = toggle_display_flag_from_nvs();
-    if (!enabled) {
-        vTaskDelete(NULL);
-    }
+    bool enabled = true;
 
     while (1) {
+        bool boot_button_pressed = (xEventGroupGetBits(events_get_group()) & EVENT_BOOT_PRESSED) != 0;
+
+        if (boot_button_pressed) {
+            xEventGroupClearBits(events_get_group(), EVENT_BOOT_PRESSED);
+            enabled = !enabled;
+            display_clear(&display);
+        }
+
+        if (!enabled) {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
         S_Command sample;
         if (xQueueReceive(render_queue, &sample, portMAX_DELAY) == pdTRUE) {
             switch (sample.commandType) {

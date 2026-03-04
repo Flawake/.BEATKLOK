@@ -21,6 +21,8 @@ typedef struct {
     display_config_t config;
 } display_handle_t;
 
+void display_clear(display_handle_t *handle);
+
 display_handle_t display_create_default(void);
 
 bool display_init(display_handle_t *handle);

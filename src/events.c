@@ -18,3 +18,8 @@ void events_set_beat_tick(void) {
     }
 }
 
+void events_set_boot_pressed(void) {
+    if (s_events_group != NULL) {
+        xEventGroupSetBits(s_events_group, EVENT_BOOT_PRESSED);
+    }
+}

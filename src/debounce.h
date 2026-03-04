@@ -16,13 +16,18 @@ typedef struct
 {
     button_state_t stable_state;
     button_state_t last_sample;
+    button_state_t prev_stable_state;
 
     uint32_t debounce_time_ms;
     uint32_t last_transition_ms;
+
+    bool edge_detected;
 } button_debouncer_t;
 
 void button_debouncer_init(button_debouncer_t *btn, button_state_t initial_state, uint32_t debounce_time_ms);
 
 button_state_t button_debouncer_update(button_debouncer_t *btn, button_state_t read_state, uint32_t now_ms);
+
+bool button_edge_detected(button_debouncer_t *btn);
 
 #endif
