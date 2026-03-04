@@ -1,3 +1,4 @@
+#include <time.h>
 #include "ntp.h"
 #include "esp_sntp.h"
 #include "esp_log.h"
@@ -5,31 +6,36 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "render/render.h"
-#include <time.h>
 
 #define NTP_TASK_TAG "SNTP"
 
 #define SYNC_OK_INTERVAL_S     (60 * 60)   // 1 hour
 #define SYNC_FAIL_INTERVAL_S   (1  * 60)   // 1 minute
 
-uint32_t time_to_centibeads(struct tm *instant) {
-    uint64_t seconds = (instant->tm_hour * 3600) + (instant->tm_min  * 60) + instant->tm_sec;
-
-    return (uint32_t)((seconds * CENTIBEAD_IN_DAY) / SECONDS_IN_DAY);
+uint32_t time_to_centibeads(uint32_t ms_since_midnight) {
+    return (uint32_t)(
+        ((uint64_t)ms_since_midnight * CENTIBEAD_IN_DAY) / MILLISECONDS_IN_DAY
+    );
 }
 
 uint32_t get_centibeads_clock(void) {
-    time_t now;
-    
-    time(&now);
+    struct timeval now;
+    struct tm bmt;
+
+    gettimeofday(&now, NULL);
 
     /* BMT time is UTC+1 */
-    now += 3600;
+    now.tv_sec += 3600;
 
-    struct tm bmt;
-    gmtime_r(&now, &bmt);
+    gmtime_r(&now.tv_sec, &bmt);
 
-    return time_to_centibeads(&bmt);
+    uint64_t ms_since_midnight =
+        ((uint64_t)bmt.tm_hour * 3600000ULL) +
+        ((uint64_t)bmt.tm_min  *   60000ULL) +
+        ((uint64_t)bmt.tm_sec  *    1000ULL) +
+        ((uint64_t)now.tv_usec / 1000ULL);
+
+    return time_to_centibeads(ms_since_midnight);
 }
 
 void sntp_sync_task(void *arg)
@@ -60,6 +66,6 @@ void sntp_sync_task(void *arg)
                 time_till_new_sync = SYNC_OK_INTERVAL_S + now;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(216)); // 864ms = 1 centibead
+        vTaskDelay(pdMS_TO_TICKS(864)); // 864ms = 1 centibead
     }
 }
