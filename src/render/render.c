@@ -48,10 +48,10 @@ void render_text(const char *text, S_Vector2 position, int text_len) {
 void render_task(void *pvParameters) {
     (void)pvParameters; // Cast to void to supress unused variable warning
 
+    render_queue = xQueueCreate(RENDER_QUEUE_SIZE, sizeof(S_Command));
+
     display_handle_t display = display_create_default();
     display_init(&display);
-
-    render_queue = xQueueCreate(RENDER_QUEUE_SIZE, sizeof(S_Command));
 
     while (1) {
         S_Command sample;
@@ -77,8 +77,6 @@ void render_task(void *pvParameters) {
                     }
                     break;
                 }
-                default:
-                    break;
             }
         }
         vTaskDelay(pdMS_TO_TICKS(1000 / DISPLAY_TARGET_FPS));

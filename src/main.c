@@ -21,8 +21,8 @@ void app_main() {
     buzzer_init();
 
     xTaskCreate(motor_drive_task, "motor_drive_task", 4096, (void*)(uintptr_t)(MOTOR_STEPS_REVOLUTION * MOTOR_GEAR_RATIO), 3, NULL);
-    xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(update_mode_task, "update_mode_task", 4096, NULL, 5, NULL);
-    xTaskCreate(render_task, "render_task", 10000, NULL, 5, NULL);
+    xTaskCreate(render_task, "render_task",  32768, NULL, 5, NULL);
     xTaskCreate(status_leds_task, "status_led_task", 4096, (void*)get_default_led_config(), 5, NULL);
+    xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
 }
