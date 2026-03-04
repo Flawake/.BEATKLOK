@@ -62,7 +62,7 @@ void motor_move_relative(float degrees) {
 }
 
 float map_to_degrees(uint32_t centibead) {
-    return ((float)centibead * 359) / (float)CENTIBEAD_IN_DAY;
+    return ((float)centibead * 359) / (float)CENTIBEATS_IN_DAY;
 }
 
 void motor_drive_task(void *arg) {
@@ -86,7 +86,7 @@ void motor_drive_task(void *arg) {
     while (1)
     {
         if (get_system_mode() == AUTO) {
-            uint32_t current_centibead = get_centibeads_clock();
+            uint32_t current_centibead = get_centibeats_clock();
             float angle = map_to_degrees(current_centibead);
             motor_move_to(angle);
         }

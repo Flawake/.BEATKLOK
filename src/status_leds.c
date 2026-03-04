@@ -1,9 +1,9 @@
 #include "status_leds.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "sound/buzzer.h"
 #include "mode.h"
 #include "net.h"
+#include "events.h"
 
 static S_StatusLedConfig default_led_config = {
     .net_led_pin = 36,
@@ -61,7 +61,7 @@ void status_leds_task(void *arg) {
 
         set_mode_led(&config, (bool)get_system_mode());
 
-        buzzer_play_tone(1000, 50);
+        events_set_beat_tick();
 
         vTaskDelay(pdMS_TO_TICKS(864)); // 1 centibead = 864ms
     }
