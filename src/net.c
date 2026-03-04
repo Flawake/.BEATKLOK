@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "render/bitmaps.h"
 #include "render/render.h"
 #include "freertos/FreeRTOS.h"
@@ -19,17 +20,61 @@
 
 #define WIFI_CONNECTED_BIT BIT0
 
+typedef enum {
+    NET_STATUS_CONNECTING = 0,
+    NET_STATUS_CONNECTED,
+    NET_STATUS_NOT_CONNECTED,
+    NET_STATUS_UNAVAILABLE,
+    NET_STATUS_ERROR
+} net_status_t;
+
 static EventGroupHandle_t s_wifi_event_group;
+static volatile net_status_t s_net_status = NET_STATUS_CONNECTING;
 
 static const char *TAG = "net";
+
+static const char *net_status_to_text(net_status_t status)
+{
+    switch (status) {
+        case NET_STATUS_CONNECTED:
+            return "verbonden";
+        case NET_STATUS_NOT_CONNECTED:
+            return "niet verbonden";
+        case NET_STATUS_UNAVAILABLE:
+            return "onbeschikbaar";
+        case NET_STATUS_CONNECTING:
+            return "verbinden";
+        case NET_STATUS_ERROR:
+        default:
+            return "error";
+    }
+}
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+        s_net_status = NET_STATUS_CONNECTING;
         esp_wifi_connect();
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        wifi_event_sta_disconnected_t *disconnected =
+            (wifi_event_sta_disconnected_t *)event_data;
+        ESP_LOGI(TAG, "ID: %i", disconnected->reason);
+
+        switch (disconnected->reason) {
+            case WIFI_REASON_NO_AP_FOUND:
+                s_net_status = NET_STATUS_UNAVAILABLE;
+                break;
+            case WIFI_REASON_CONNECTION_FAIL:
+            case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+                s_net_status = NET_STATUS_NOT_CONNECTED;
+                break;
+            default:
+                s_net_status = NET_STATUS_ERROR;
+                break;
+        }
+
         render_bitmap(&disconnected_bitmap, (S_Vector2){10, 10});
         esp_wifi_connect();
         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
@@ -39,6 +84,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         ip_event_got_ip_t *event = (ip_event_got_ip_t *) event_data;
         ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+        s_net_status = NET_STATUS_CONNECTED;
     }
 }
 
@@ -79,6 +125,13 @@ void wifi_signal_monitor_task(void *pvParameters) {
             }
 
             render_bitmap(icon, (S_Vector2){10, 10});
+        }
+
+        const char *status_str = net_status_to_text(s_net_status);
+        char text[24];
+        int text_len = snprintf(text, sizeof(text), "%s", status_str);
+        if (text_len > 0) {
+            render_text(text, (S_Vector2){10, 48}, text_len);
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));

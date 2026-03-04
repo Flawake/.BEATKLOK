@@ -1,6 +1,7 @@
+#include "status_leds.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "status_leds.h"
+#include "sound/buzzer.h"
 #include "mode.h"
 #include "net.h"
 
@@ -59,6 +60,8 @@ void status_leds_task(void *arg) {
         set_time_led(&config, time_led_state);
 
         set_mode_led(&config, (bool)get_system_mode());
+
+        buzzer_play_tone(1000, 50);
 
         vTaskDelay(pdMS_TO_TICKS(864)); // 1 centibead = 864ms
     }

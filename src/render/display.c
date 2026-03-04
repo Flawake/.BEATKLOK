@@ -23,6 +23,10 @@ display_handle_t display_create_default(void) {
     };
 }
 
+void display_clear(display_handle_t *handle) {
+    ssd1306_clear_screen(&handle->device, false);
+}
+
 bool display_init(display_handle_t *handle) {
     i2c_master_init(&handle->device, 
                      handle->config.sda_pin, 
@@ -39,18 +43,12 @@ bool display_init(display_handle_t *handle) {
     return true;
 }
 
-void display_clear(display_handle_t *handle) {
-    ssd1306_clear_screen(&handle->device, false);
-}
-
-void display_clear_rectangle(display_handle_t *handle, int mix_x, int max_x, int min_y, int max_y) {
-    if (mix_x < 0) mix_x = 0;
-    if (min_y < 0) min_y = 0;
+void display_clear_rectangle(display_handle_t *handle, uint8_t mix_x, uint8_t max_x, uint8_t min_y, uint8_t max_y) {
     if (max_x > handle->config.width) max_x = handle->config.width;
     if (max_y > handle->config.height) max_y = handle->config.height;
 
-    for (int y = min_y; y < max_y; y++) {
-        for (int x = mix_x; x < max_x; x++) {
+    for (uint8_t y = min_y; y < max_y; y++) {
+        for (uint8_t x = mix_x; x < max_x; x++) {
             _ssd1306_pixel(&handle->device, x, y, true);
         }
     }
@@ -60,12 +58,11 @@ void display_clear_rectangle(display_handle_t *handle, int mix_x, int max_x, int
 void display_show_text(display_handle_t *handle, int x_pos, int y_pos,
                        const char *text, int text_len) {
 
-    int text_width = text_len * 8;
     int text_height = 8;
 
     display_clear_rectangle(handle,
                             x_pos,
-                            x_pos + text_width,
+                            handle->config.width,
                             y_pos,
                             y_pos + text_height);
 
