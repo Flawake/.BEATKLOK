@@ -9,8 +9,8 @@
 
 #define NTP_TASK_TAG "SNTP"
 
-#define SYNC_OK_INTERVAL_MS     (60 * 60 * 1000)   // 1 hour
-#define SYNC_FAIL_INTERVAL_MS   (1  * 60 * 1000)   // 1 minute
+#define SYNC_OK_INTERVAL_S     (60 * 60)   // 1 hour
+#define SYNC_FAIL_INTERVAL_S   (1  * 60)   // 1 minute
 
 uint32_t time_to_centibeads(struct tm *instant) {
     uint64_t seconds = (instant->tm_hour * 3600) + (instant->tm_min  * 60) + instant->tm_sec;
@@ -39,6 +39,7 @@ void sntp_sync_task(void *arg)
     setservername_sntp(2, "time.google.com");
 
     time_t last_sync_time;
+    uint32_t time_till_new_sync = 0;
     
     while (1) {
         time_t now;
@@ -47,15 +48,15 @@ void sntp_sync_task(void *arg)
         int text_len = snprintf(text, sizeof(text), "Time: %li\n", get_centibeads_clock());
 
         render_text(text, (S_Vector2){10, 40}, text_len);
-        if (now - last_sync_time < 3600) {
-            vTaskDelay(pdMS_TO_TICKS(216)); // 864ms = 1 centibead;
-        }
-
-        if(sntp_request() != ESP_OK) {
-            ESP_LOGW(NTP_TASK_TAG, "Time sync failed");
-        }
-        else {
-            time(&last_sync_time);
+        if (now - last_sync_time > time_till_new_sync) {
+            if(sntp_request() != ESP_OK) {
+                ESP_LOGW(NTP_TASK_TAG, "Time sync failed");
+                time_till_new_sync = SYNC_FAIL_INTERVAL_S + now;
+            }
+            else {
+                time(&last_sync_time);
+                time_till_new_sync = SYNC_OK_INTERVAL_S + now;
+            }
         }
         vTaskDelay(pdMS_TO_TICKS(216)); // 864ms = 1 centibead
     }
