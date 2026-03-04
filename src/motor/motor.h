@@ -1,10 +1,13 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-typedef enum {
-    CLOCKWISE = -1,
-    COUNTER_CLOCKWISE = 1,
-} E_MotorDir;
+#include "ULN2003.h"
+
+typedef struct {
+    S_ULN2003 driver;
+    float local_rotation;
+    uint16_t steps_per_revolution;
+} S_MotorDriver;
 
 void motor_reset_local_rotation(void);
 

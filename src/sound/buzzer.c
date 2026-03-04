@@ -4,15 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "events.h"
-
-#define BUZZER_GPIO             35
-#define BUZZER_LEDC_MODE        LEDC_LOW_SPEED_MODE
-#define BUZZER_LEDC_TIMER       LEDC_TIMER_0
-#define BUZZER_LEDC_CHANNEL     LEDC_CHANNEL_0
-#define BUZZER_LEDC_DUTY_RES    LEDC_TIMER_10_BIT
-
-//  10-bit, max 1023
-#define BUZZER_DUTY             16
+#include "device_config.h"
 
 void buzzer_init(void) {
 
@@ -26,7 +18,7 @@ void buzzer_init(void) {
     ledc_timer_config(&timer_conf);
 
     ledc_channel_config_t channel_conf = {
-        .gpio_num       = BUZZER_GPIO,
+        .gpio_num       = BUZZER_GPIO_NUM,
         .speed_mode     = BUZZER_LEDC_MODE,
         .channel        = BUZZER_LEDC_CHANNEL,
         .timer_sel      = BUZZER_LEDC_TIMER,

@@ -58,8 +58,8 @@ void render_text(const char *text, S_Vector2 position, int text_len) {
 
 #define DISPLAY_TARGET_FPS 10
 
-void render_task(void *pvParameters) {
-    (void)pvParameters; // Cast to void to supress unused variable warning
+void render_task(void *arg) {
+    display_config_t display_config = *(display_config_t*)arg;
 
     render_queue = xQueueCreate(RENDER_QUEUE_SIZE, sizeof(S_Command));
     if (render_queue == NULL) {
@@ -67,7 +67,7 @@ void render_task(void *pvParameters) {
         abort();
     }
 
-    display_handle_t display = display_create_default();
+    display_handle_t display = create_display_handle(display_config);
     display_init(&display);
 
     bool enabled = true;

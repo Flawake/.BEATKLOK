@@ -3,22 +3,14 @@
 #include "display.h"
 #include "net.h"
 #include "esp_log.h"
+#include "device_config.h"
 
 #define TAG "Display"
 
 #define DISPLAY_LINE_TEXT_LEN 24
 
-#define DISPLAY_CONFIG_DEFAULT { \
-    .sda_pin = 8, \
-    .scl_pin = 9, \
-    .reset_pin = -1, \
-    .width = 128, \
-    .height = 64, \
-}
-
-display_handle_t display_create_default(void) {
-    display_config_t config = DISPLAY_CONFIG_DEFAULT;
-    return (display_handle_t) {
+display_handle_t create_display_handle(display_config_t config) {
+    return (display_handle_t){
         .config = config
     };
 }

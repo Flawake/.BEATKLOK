@@ -5,16 +5,6 @@
 #include "net.h"
 #include "events.h"
 
-static S_StatusLedConfig default_led_config = {
-    .net_led_pin = 36,
-    .time_led_pin = 37,
-    .mode_led_pin = 38,
-};
-
-S_StatusLedConfig *get_default_led_config(void) {
-    return &default_led_config;
-}
-
 static void set_net_led(S_StatusLedConfig *config, bool state) {
     gpio_set_level(config->net_led_pin, state);
 }

@@ -10,8 +10,7 @@
 #include "driver/gpio.h"
 #include "debounce.h"
 #include "events.h"
-
-#define BOOT_BUTTON_PIN 0
+#include "device_config.h"
 
 e_SystemMode currentSystemMode = MANUAL;
 
@@ -43,9 +42,9 @@ void set_boot_pin(void) {
 }
 
 void update_mode_task(void *arg) {
-    (void)arg;
+    S_RotaryEncoderConfig *rotary_encoder = (S_RotaryEncoderConfig*)arg;
 
-    init_rotary_encoder();
+    init_rotary_encoder(rotary_encoder);
 
     set_boot_pin();
 
