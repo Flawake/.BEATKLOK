@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
+#include "render/bitmaps.h"
+#include "render/render.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -28,6 +30,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         esp_wifi_connect();
     }
     else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        render_bitmap(&disconnected_bitmap, (S_Vector2){10, 10});
         esp_wifi_connect();
         xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
         ESP_LOGI(TAG, "Retrying WiFi connection...");

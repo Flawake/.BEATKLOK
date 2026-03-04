@@ -48,7 +48,7 @@ void sntp_sync_task(void *arg)
 
         render_text(text, (S_Vector2){10, 40}, text_len);
         if (now - last_sync_time < 3600) {
-            vTaskDelay(pdMS_TO_TICKS(864)); // 864ms = 1 centibead;
+            vTaskDelay(pdMS_TO_TICKS(216)); // 864ms = 1 centibead;
         }
 
         if(sntp_request() != ESP_OK) {
@@ -57,6 +57,6 @@ void sntp_sync_task(void *arg)
         else {
             time(&last_sync_time);
         }
-        vTaskDelay(pdMS_TO_TICKS(864)); // 864ms = 1 centibead
+        vTaskDelay(pdMS_TO_TICKS(216)); // 864ms = 1 centibead
     }
 }
