@@ -25,15 +25,8 @@ display_handle_t display_create_default(void);
 
 bool display_init(display_handle_t *handle);
 
-void display_clear(display_handle_t *handle);
-
-void display_clear_rectangle(display_handle_t *handle, int mix_x, int max_x, int min_y, int max_y);
-
 void display_show_text(display_handle_t *handle, int x_pos, int y_pos,
                        const char *text, int text_len);
-
-void display_show_text_centered(display_handle_t *handle, int page,
-                                const char *text, int text_len);
 
 void display_show_bitmap(display_handle_t *handle, S_Bitmap bitmap, int x_pos, int y_pos);
 
