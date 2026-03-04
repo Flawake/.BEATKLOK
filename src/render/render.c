@@ -54,7 +54,7 @@ static bool toggle_display_flag_from_nvs(void) {
         return true;
     }
 
-    stored = (uint8_t)(!(bool)stored);
+    stored ^= 1; // Invert last bit
 
     err = nvs_set_u8(handle, DISPLAY_ENABLED, stored);
     if (err != ESP_OK) {
