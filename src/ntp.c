@@ -44,7 +44,7 @@ void sntp_sync_task(void *arg)
     setservername_sntp(1, "time.nist.gov");
     setservername_sntp(2, "time.google.com");
 
-    time_t last_sync_time;
+    time_t last_sync_time = 0;
     uint32_t time_till_new_sync = 0;
     
     while (1) {
@@ -52,8 +52,14 @@ void sntp_sync_task(void *arg)
         time(&now);
         char text[20];
 
+        int text_len;
         long cur_time = get_centibeats_clock();
-        int text_len = snprintf(text, sizeof(text), "Time: %li.%02li\n", cur_time / 100, labs(cur_time % 100));
+
+        if (last_sync_time == 0) {
+            text_len = snprintf(text, sizeof(text), "Time: ---.---");
+        } else {
+            text_len = snprintf(text, sizeof(text), "Time: %li.%02li\n", cur_time / 100, labs(cur_time % 100));
+        }
 
         render_text(text, (S_Vector2){10, 40}, text_len);
         if (now - last_sync_time > time_till_new_sync) {
