@@ -45,7 +45,9 @@ void sntp_sync_task(void *arg)
         time_t now;
         time(&now);
         char text[20];
-        int text_len = snprintf(text, sizeof(text), "Time: %li\n", get_centibeads_clock());
+
+        long cur_time = get_centibeads_clock();
+        int text_len = snprintf(text, sizeof(text), "Time: %li.%02li\n", cur_time / 100, labs(cur_time % 100));
 
         render_text(text, (S_Vector2){10, 40}, text_len);
         if (now - last_sync_time > time_till_new_sync) {
