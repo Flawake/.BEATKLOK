@@ -91,7 +91,7 @@ void motor_drive_task(void *arg) {
     while (1)
     {
         if (get_system_mode() == AUTO) {
-            int current_centibead = get_centibeads_clock();
+            uint32_t current_centibead = get_centibeads_clock();
             float angle = map_to_degrees(current_centibead);
             motor_move_to(angle);
         }
