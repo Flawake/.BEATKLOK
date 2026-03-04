@@ -50,11 +50,6 @@ void motor_move_to(float position) {
 
     uint32_t steps = (uint32_t)((fabsf(delta) / 360.0f) * driver.steps_per_revolution);
 
-    // Avoid turning for too long and triggering the watchdog
-    if (steps > 1000) {
-        steps = 1000;
-    }
-
     uln2003_make_steps(&driver.driver, dir, steps);
 
     /* Store the actual moved angle, not the angle we wanted to move. That will accumalate errors */
