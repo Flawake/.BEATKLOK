@@ -50,7 +50,7 @@ void status_leds_task(void *arg) {
         time_led_state = !time_led_state;
         set_time_led(&config, time_led_state);
 
-        set_mode_led(&config, (bool)get_system_mode());
+        set_mode_led(&config, !(bool)get_system_mode());
 
         if (play_tone) {
             events_set_beat_tick();
