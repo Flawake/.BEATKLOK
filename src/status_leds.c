@@ -35,6 +35,7 @@ void status_leds_task(void *arg) {
 
     bool net_led_state = false;
     bool time_led_state = false;
+    bool play_tone = false;
 
     while (1)
     {
@@ -51,9 +52,12 @@ void status_leds_task(void *arg) {
 
         set_mode_led(&config, (bool)get_system_mode());
 
-        events_set_beat_tick();
+        if (play_tone) {
+            events_set_beat_tick();
+        }
+        play_tone = !play_tone;
 
-        vTaskDelay(pdMS_TO_TICKS(864)); // 1 centibead = 864ms
+        vTaskDelay(pdMS_TO_TICKS(432)); // 1 centibead = 864ms
     }
     
 }

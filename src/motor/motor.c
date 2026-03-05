@@ -44,7 +44,7 @@ void motor_move_relative(float degrees) {
 }
 
 float map_to_degrees(uint32_t centibead) {
-    return ((float)centibead * 359) / (float)CENTIBEATS_IN_DAY;
+    return ((float)centibead * 360) / (float)CENTIBEATS_IN_DAY;
 }
 
 void motor_drive_task(void *arg) {

@@ -15,16 +15,12 @@
 e_SystemMode currentSystemMode = MANUAL;
 
 e_SystemMode update_system_mode(e_SystemMode currentMode) {
-    if (currentMode == AUTO) {
-        return currentMode;
-    }
-    
-    int level = read_rotary_button();
+    button_state_t state = read_rotary_button();
 
-    if (level == 0) {
-        return AUTO;
+    if (state == PRESSED) {
+        currentMode = currentMode == MANUAL ? AUTO : MANUAL;
     }
-    return MANUAL;
+    return currentMode;
 }
 
 e_SystemMode get_system_mode(void) {

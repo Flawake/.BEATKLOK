@@ -122,9 +122,10 @@ void init_rotary_encoder(S_RotaryEncoderConfig *encoderConfig) {
 button_state_t read_rotary_button(void) {
     replay_encoder_interrupts();
 
-    uint32_t now_ms = esp_timer_get_time() / 1000;
-    button_state_t raw = gpio_get_level(rotary_encoder.config.key_pin) ? RELEASED : PRESSED;
-    return button_debouncer_update(&key_button, raw, now_ms);
+    if (key_button.stable_state == PRESSED && button_edge_detected(&key_button)) {
+        return PRESSED;
+    }
+    return RELEASED;
 }
 
 int16_t read_rotary_step() {
