@@ -1,30 +1,12 @@
 #include <math.h>
 #include <stdint.h>
-#include "ULN2003.h"
+#include "motor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mode.h"
 #include "ntp.h"
 
-typedef struct
-{
-    S_ULN2003 driver;
-    float local_rotation;
-    uint16_t steps_per_revolution;
-} S_MotorDriver;
-
-S_MotorDriver driver = {
-    .driver = {
-        .config = {
-            .IN1 = 13,
-            .IN2 = 14,
-            .IN3 = 15,
-            .IN4 = 16,
-        },
-        .step_phase = 0,
-    },
-    .local_rotation = 0,
-};
+static S_MotorDriver driver;
 
 void motor_reset_local_rotation(void) {
     driver.local_rotation = 0;
@@ -62,12 +44,12 @@ void motor_move_relative(float degrees) {
 }
 
 float map_to_degrees(uint32_t centibead) {
-    return ((float)centibead * 359) / (float)CENTIBEATS_IN_DAY;
+    return ((float)centibead * 360) / (float)CENTIBEATS_IN_DAY;
 }
 
 void motor_drive_task(void *arg) {
-    uint16_t steps_per_revolution = (uint16_t)(uintptr_t)arg;
-    driver.steps_per_revolution = steps_per_revolution;
+    S_MotorDriver motor_conf = *(S_MotorDriver*)arg;
+    driver = motor_conf;
 
     gpio_config_t io_conf = {
         .mode = GPIO_MODE_OUTPUT,

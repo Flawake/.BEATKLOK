@@ -10,7 +10,7 @@ const uint8_t step_table[4] = {
     0b1000
 };
 
-void set_motor_pins(S_ULN2003Config *config, uint8_t pin_mask) {
+void set_motor_pins(S_ULN2003_Config *config, uint8_t pin_mask) {
     gpio_set_level(config->IN1, (pin_mask >> 0) & 0x01);
     gpio_set_level(config->IN2, (pin_mask >> 1) & 0x01);
     gpio_set_level(config->IN3, (pin_mask >> 2) & 0x01);

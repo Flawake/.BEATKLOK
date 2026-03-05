@@ -6,11 +6,11 @@
 #include "freertos/queue.h"
 #include "esp_timer.h"
 #include "esp_log.h"
+#include "device_config.h"
 
 #define BUTTON_ISR_QUEUE_SIZE 100
 
-typedef struct
-{
+typedef struct {
     uint32_t time_ms;
     button_state_t state;
     gpio_num_t triggered_pin;
@@ -19,26 +19,12 @@ typedef struct
 static QueueHandle_t button_queue;
 
 typedef struct {
-    gpio_num_t key_pin;
-    gpio_num_t s1_pin;
-    gpio_num_t s2_pin;
-} S_RotaryEncoderConfig;
-
-typedef struct {
     S_RotaryEncoderConfig config;
     button_state_t last_s2;
     int16_t step_count;
 } S_RotaryEncoder;
 
-S_RotaryEncoder rotary_encoder = {
-    .config = {
-        .key_pin = GPIO_NUM_33,
-        .s1_pin = GPIO_NUM_18,
-        .s2_pin = GPIO_NUM_5,
-    },
-    .last_s2 = RELEASED,
-    .step_count = 0,
-};
+static S_RotaryEncoder rotary_encoder;
 
 button_debouncer_t key_button;
 bool sw1_state;
@@ -117,7 +103,12 @@ void set_encoder_pin(gpio_num_t pin_num) {
     gpio_isr_handler_add(pin_num, encoder_isr_handler, (void *)(uintptr_t)pin_num);
 }
 
-void init_rotary_encoder(void) {
+void init_rotary_encoder(S_RotaryEncoderConfig *encoderConfig) {
+    rotary_encoder = (S_RotaryEncoder) {
+        .config = *encoderConfig,
+        .last_s2 = RELEASED,
+        .step_count = 0,
+    };
     button_queue = xQueueCreate(BUTTON_ISR_QUEUE_SIZE, sizeof(button_sample_t));
 
     gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
@@ -131,9 +122,10 @@ void init_rotary_encoder(void) {
 button_state_t read_rotary_button(void) {
     replay_encoder_interrupts();
 
-    uint32_t now_ms = esp_timer_get_time() / 1000;
-    button_state_t raw = gpio_get_level(rotary_encoder.config.key_pin) ? RELEASED : PRESSED;
-    return button_debouncer_update(&key_button, raw, now_ms);
+    if (key_button.stable_state == PRESSED && button_edge_detected(&key_button)) {
+        return PRESSED;
+    }
+    return RELEASED;
 }
 
 int16_t read_rotary_step() {

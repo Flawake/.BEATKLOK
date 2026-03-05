@@ -10,9 +10,7 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
-
-#define MOTOR_GEAR_RATIO 64
-#define MOTOR_STEPS_REVOLUTION 32
+#include "device_config.h"
 
 void app_main() {
     ESP_ERROR_CHECK(nvs_flash_init());
@@ -21,10 +19,10 @@ void app_main() {
     wifi_init();
     events_init();
 
-    xTaskCreate(motor_drive_task, "motor_drive_task", 4096, (void*)(uintptr_t)(MOTOR_STEPS_REVOLUTION * MOTOR_GEAR_RATIO), 3, NULL);
-    xTaskCreate(update_mode_task, "update_mode_task", 4096, NULL, 5, NULL);
-    xTaskCreate(render_task, "render_task",  32768, NULL, 5, NULL);
-    xTaskCreate(status_leds_task, "status_led_task", 4096, (void*)get_default_led_config(), 5, NULL);
+    xTaskCreate(motor_drive_task, "motor_drive_task", 4096, (void*)get_motor_config(), 3, NULL);
+    xTaskCreate(update_mode_task, "update_mode_task", 4096, (void*)get_rotary_config(), 5, NULL);
+    xTaskCreate(render_task, "render_task",  32768, (void*)get_display_config(), 5, NULL);
+    xTaskCreate(status_leds_task, "status_led_task", 4096, (void*)get_status_led_config(), 5, NULL);
     xTaskCreate(sntp_sync_task, "ntp_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(wifi_signal_monitor_task, "wifi_signal_monitor_task", 4096, NULL, 5, NULL);
     xTaskCreate(buzzer_task, "buzzer_task", 4096, NULL, 5, NULL);

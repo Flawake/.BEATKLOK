@@ -5,15 +5,7 @@
 #include "net.h"
 #include "events.h"
 
-static S_StatusLedConfig default_led_config = {
-    .net_led_pin = 36,
-    .time_led_pin = 37,
-    .mode_led_pin = 38,
-};
-
-S_StatusLedConfig *get_default_led_config(void) {
-    return &default_led_config;
-}
+#define MS_PER_CENTIBEAT 864
 
 static void set_net_led(S_StatusLedConfig *config, bool state) {
     gpio_set_level(config->net_led_pin, state);
@@ -45,6 +37,7 @@ void status_leds_task(void *arg) {
 
     bool net_led_state = false;
     bool time_led_state = false;
+    bool play_tone = false;
 
     while (1)
     {
@@ -59,11 +52,14 @@ void status_leds_task(void *arg) {
         time_led_state = !time_led_state;
         set_time_led(&config, time_led_state);
 
-        set_mode_led(&config, (bool)get_system_mode());
+        set_mode_led(&config, !(bool)get_system_mode());
 
-        events_set_beat_tick();
+        if (play_tone) {
+            events_set_beat_tick();
+        }
+        play_tone = !play_tone;
 
-        vTaskDelay(pdMS_TO_TICKS(864)); // 1 centibead = 864ms
+        vTaskDelay(pdMS_TO_TICKS(MS_PER_CENTIBEAT / 2));
     }
     
 }
