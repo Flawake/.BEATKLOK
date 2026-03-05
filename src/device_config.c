@@ -1,6 +1,6 @@
 #include "device_config.h"
 
-display_config_t display_config = {
+static display_config_t display_config = {
     .sda_pin   = DISPLAY_SDA_PIN,
     .scl_pin   = DISPLAY_SCL_PIN,
     .reset_pin = DISPLAY_RESET_PIN,
@@ -8,13 +8,13 @@ display_config_t display_config = {
     .height    = DISPLAY_HEIGHT,
 };
 
-S_StatusLedConfig status_led_config = {
+static S_StatusLedConfig status_led_config = {
     .net_led_pin  = (gpio_num_t)STATUS_LED_NET_PIN,
     .time_led_pin = (gpio_num_t)STATUS_LED_TIME_PIN,
     .mode_led_pin = (gpio_num_t)STATUS_LED_MODE_PIN,
 };
 
-S_MotorDriver motor_config = {
+static S_MotorDriver motor_config = {
     .driver = {
         .config = {
             .IN1 = (gpio_num_t)MOTOR_IN1_PIN,
@@ -28,7 +28,7 @@ S_MotorDriver motor_config = {
     .steps_per_revolution = (uint16_t)(MOTOR_GEAR_RATIO * MOTOR_STEPS_REVOLUTION),
 };
 
-S_RotaryEncoderConfig g_rotary_encoder_config = {
+static S_RotaryEncoderConfig g_rotary_encoder_config = {
     .key_pin = (gpio_num_t)ROTARY_KEY_PIN_NUM,
     .s1_pin  = (gpio_num_t)ROTARY_S1_PIN_NUM,
     .s2_pin  = (gpio_num_t)ROTARY_S2_PIN_NUM,

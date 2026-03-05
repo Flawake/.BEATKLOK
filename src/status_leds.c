@@ -5,6 +5,8 @@
 #include "net.h"
 #include "events.h"
 
+#define MS_PER_CENTIBEAT 864
+
 static void set_net_led(S_StatusLedConfig *config, bool state) {
     gpio_set_level(config->net_led_pin, state);
 }
@@ -57,7 +59,7 @@ void status_leds_task(void *arg) {
         }
         play_tone = !play_tone;
 
-        vTaskDelay(pdMS_TO_TICKS(432)); // 1 centibead = 864ms
+        vTaskDelay(pdMS_TO_TICKS(MS_PER_CENTIBEAT / 2));
     }
     
 }
